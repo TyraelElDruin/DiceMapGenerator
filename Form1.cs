@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,6 +16,8 @@ namespace DiceConverter
         public Form1()
         {
             InitializeComponent();
+            //for(int x = 1; x <= 6; x++)
+            //dice[x-1] = (Bitmap) Properties.Resources.ResourceManager.GetObject("dice" + x + ".png");
         }
 
         public static Bitmap MakeGrayscale3(Bitmap original)
@@ -44,8 +46,17 @@ namespace DiceConverter
             return Math.Round((double) x/6, 2);
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
+            string topText = this.Text;
+            Bitmap[] dice = new Bitmap[7];
+            dice[1] = Properties.Resources.dice1;
+            dice[2] = Properties.Resources.dice2;
+            dice[3] = Properties.Resources.dice3;
+            dice[4] = Properties.Resources.dice4;
+            dice[5] = Properties.Resources.dice5;
+            dice[6] = Properties.Resources.dice6;
+
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.RestoreDirectory = true;
             string fileNameNoExt = "";
@@ -57,43 +68,51 @@ namespace DiceConverter
                 filePath = System.IO.Path.GetDirectoryName(path);
                 tbPath.Text = path;
             }
-            try
+            await Task.Run(() =>
             {
-                Bitmap bm = (Bitmap) Bitmap.FromFile(tbPath.Text);
-                Bitmap d = MakeGrayscale3(bm);
-                pictureBox1.Image = d;
-                string diceMap = "";
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath + "\\" + fileNameNoExt + ".txt")) {
-                    for (int x = 0; x < d.Width; x++)
+                try
+                {
+                    this.Text = topText + " - Converting image to grayscale...";
+                    Bitmap bm = (Bitmap)Bitmap.FromFile(tbPath.Text);
+                    Bitmap d = MakeGrayscale3(bm);
+                    pictureBox1.Image = d;
+                    this.Text = topText + " - Generating DiceMap...";
+                    string diceMap = "";
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath + "\\" + fileNameNoExt + ".txt"))
                     {
-                        for (int y = 0; y < d.Height; y++)
+                        for (int x = 0; x < d.Width; x++)
                         {
-                            double brightness = Math.Round(d.GetPixel(x, y).GetBrightness(), 2);
-                            if (brightness <= Math.Round((double) (1 / 6),2))
-                                diceMap += "6";
-                            else if (brightness > getD(1) && brightness <= getD(2))
-                                diceMap += "5";
-                            else if (brightness > getD(2) && brightness <= getD(3))
-                                diceMap += "4";
-                            else if (brightness > getD(3) && brightness <= getD(4))
-                                diceMap += "3";
-                            else if (brightness > getD(4) && brightness <= getD(5))
-                                diceMap += "2";
-                            else if (brightness > getD(5))
-                                diceMap += "1";
-                            else
-                                diceMap += "0"; //shouldn't ever happen.*/
+                            for (int y = 0; y < d.Height; y++)
+                            {
+                                double brightness = Math.Round(d.GetPixel(x, y).GetBrightness(), 2);
+                                if (brightness <= getD(1))
+                                    diceMap += "6";
+                                else if (brightness > getD(1) && brightness <= getD(2))
+                                    diceMap += "5";
+                                else if (brightness > getD(2) && brightness <= getD(3))
+                                    diceMap += "4";
+                                else if (brightness > getD(3) && brightness <= getD(4))
+                                    diceMap += "3";
+                                else if (brightness > getD(4) && brightness <= getD(5))
+                                    diceMap += "2";
+                                else if (brightness > getD(5))
+                                    diceMap += "1";
+                                else
+                                    diceMap += "0"; //shouldn't ever happen.*/
+                            }
+                            this.Text = topText + " - Generating DiceMap... [" + x + "/" + d.Width + "]";
+                            file.WriteLine(diceMap);
+                            diceMap = "";
                         }
-                        file.WriteLine(diceMap);
-                        diceMap = "";
+                        this.Text = topText;
+                        MessageBox.Show("Complete! Dice map written to " + filePath + "\\" + fileNameNoExt + ".txt", "Dice Map Complete!");
                     }
-                    MessageBox.Show("Complete! Dice map written to " + filePath + "\\" + fileNameNoExt + ".txt");
                 }
-            }
-            catch(Exception err)
-            {
-                MessageBox.Show(err.ToString());
-            }
+                catch (Exception err)
+                {
+                    MessageBox.Show(err.ToString());
+                }
+            });
         }
     }
 }

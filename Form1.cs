@@ -16,8 +16,6 @@ namespace DiceConverter
         public Form1()
         {
             InitializeComponent();
-            //for(int x = 1; x <= 6; x++)
-            //dice[x-1] = (Bitmap) Properties.Resources.ResourceManager.GetObject("dice" + x + ".png");
         }
 
         public static Bitmap MakeGrayscale3(Bitmap original)

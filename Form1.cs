@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
@@ -66,6 +67,10 @@ namespace DiceConverter
                 filePath = System.IO.Path.GetDirectoryName(path);
                 tbPath.Text = path;
             }
+            else
+            {
+                return;
+            }
             await Task.Run(() =>
             {
                 try
@@ -103,11 +108,35 @@ namespace DiceConverter
                             diceMap = "";
                         }
                         this.Text = topText;
-                        MessageBox.Show("Complete! Dice map written to " + filePath + "\\" + fileNameNoExt + ".txt", "Dice Map Complete!");
                     }
+                    this.Text = topText + " - Generating Preview...";
+                    var lines = System.IO.File.ReadAllLines(filePath + "\\" + fileNameNoExt + ".txt");
+                    Bitmap preview = new Bitmap(d.Width*40, d.Height*40);
+                    int dieWidth = 40;
+                    int curLine = 0;
+                    using (Graphics g = Graphics.FromImage(preview))
+                    {
+                        foreach (var line in lines)
+                        {
+                            for (int x = 0; x < line.Length; x++)
+                            {
+                                g.DrawImage(dice[int.Parse(line[x].ToString())], curLine, dieWidth * x);
+                            }
+                            curLine += dieWidth;
+                        }
+                    }
+                    preview.Save(filePath + "\\" + fileNameNoExt + "#DiceImage#.png", ImageFormat.Png);
+                    pictureBox1.Image = preview;
+                    this.Text = topText;
+                    MessageBox.Show("Complete! Dice map written to " + filePath + "\\" + fileNameNoExt + ".txt" + Environment.NewLine + Environment.NewLine + "Dice Required: " + d.Width * d.Height, "Dice Map Complete!");
+                }
+                catch (ArgumentException)
+                {
+                    MessageBox.Show("Cannot generate a dice preview for this image because it is too big!" + Environment.NewLine + Environment.NewLine + "Try scaling it down!", "Resize Image for Dice Preview! (Make it smaller!)");
                 }
                 catch (Exception err)
                 {
+                    this.Text = topText;
                     MessageBox.Show(err.ToString());
                 }
             });

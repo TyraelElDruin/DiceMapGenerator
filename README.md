@@ -7,7 +7,9 @@ This version will output 2 files.
 
 One file is called [FileName].txt - this is a text file showing you how the dice need to be spun.
 
-The second file is called [FileName]#Dice Map#.png - this is an image file showing you a preview of the dice image.
+The second file is called [FileName]#DiceImage#.png - this is an image file showing you a preview of the dice image.
+
+These images will appear in the same directory your converted image is found.
 
 Example Previews:
 

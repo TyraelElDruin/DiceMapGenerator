@@ -1,4 +1,4 @@
-# DiceMapGenerator
+# Dice Map Generator
 Generates a dice map from an image
 
 ![Dice Map Generater v1.6](https://i.imgur.com/xAAsdjj.png)

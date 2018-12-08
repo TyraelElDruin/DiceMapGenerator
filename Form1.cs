@@ -83,11 +83,11 @@ namespace DiceConverter
                     string diceMap = "";
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(filePath + "\\" + fileNameNoExt + ".txt"))
                     {
-                        for (int x = 0; x < d.Width; x++)
+                        for (int x = 0; x < d.Height; x++)
                         {
-                            for (int y = 0; y < d.Height; y++)
+                            for (int y = 0; y < d.Width; y++)
                             {
-                                double brightness = Math.Round(d.GetPixel(x, y).GetBrightness(), 2);
+                                double brightness = Math.Round(d.GetPixel(y, x).GetBrightness(), 2);
                                 if (brightness <= getD(1))
                                     diceMap += "6";
                                 else if (brightness > getD(1) && brightness <= getD(2))
@@ -103,7 +103,7 @@ namespace DiceConverter
                                 else
                                     diceMap += "0"; //shouldn't ever happen.*/
                             }
-                            this.Text = topText + " - Generating DiceMap... [" + x + "/" + d.Width + "]";
+                            this.Text = topText + " - Generating DiceMap... [" + x + "/" + d.Height + "]";
                             file.WriteLine(diceMap);
                             diceMap = "";
                         }
@@ -120,7 +120,7 @@ namespace DiceConverter
                         {
                             for (int x = 0; x < line.Length; x++)
                             {
-                                g.DrawImage(dice[int.Parse(line[x].ToString())], curLine, dieWidth * x);
+                                g.DrawImage(dice[int.Parse(line[x].ToString())], dieWidth * x, curLine);
                             }
                             curLine += dieWidth;
                         }

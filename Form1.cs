@@ -14,6 +14,7 @@ namespace DiceConverter
 {
     public partial class Form1 : Form
     {
+        private Bitmap[] dice = new Bitmap[7];
         public Form1()
         {
             InitializeComponent();
@@ -40,6 +41,28 @@ namespace DiceConverter
             return newBitmap;
         }
 
+        public static Bitmap ResizeImage(Image image, int width, int height)
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+            return destImage;
+        }
+
         public double getD(int x)
         {
             return Math.Round((double) x/6, 2);
@@ -47,14 +70,21 @@ namespace DiceConverter
 
         private async void button1_Click(object sender, EventArgs e)
         {
+            int maxDice = 0;
+            if(tbMaxDice.Text != "")
+            {
+                try
+                {
+                    maxDice = int.Parse(tbMaxDice.Text);
+                    if (maxDice < 1) maxDice = 0;
+                }
+                catch(Exception)
+                {
+                    MessageBox.Show("Invalid Max Dice Value", "Invalid MaxDice Value :c");
+                    return;
+                }
+            }
             string topText = this.Text;
-            Bitmap[] dice = new Bitmap[7];
-            dice[1] = Properties.Resources.dice1;
-            dice[2] = Properties.Resources.dice2;
-            dice[3] = Properties.Resources.dice3;
-            dice[4] = Properties.Resources.dice4;
-            dice[5] = Properties.Resources.dice5;
-            dice[6] = Properties.Resources.dice6;
 
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.RestoreDirectory = true;
@@ -77,6 +107,15 @@ namespace DiceConverter
                 {
                     this.Text = topText + " - Converting image to grayscale...";
                     Bitmap bm = (Bitmap)Bitmap.FromFile(tbPath.Text);
+                    if(maxDice != 0)
+                    {
+                        Size original = new Size(bm.Width, bm.Height);
+                        int maxSize = (int) Math.Floor(Math.Sqrt(maxDice));
+                        float percent = (new List<float> { (float)maxSize / (float)original.Width, (float)maxSize / (float)original.Height }).Min();
+                        Size resultSize = new Size((int)Math.Floor(original.Width * percent), (int)Math.Floor(original.Height * percent));
+                        if(resultSize.Width <= bm.Width && resultSize.Height <= bm.Height)
+                            bm = ResizeImage((Image) bm, resultSize.Width, resultSize.Height);
+                    }
                     Bitmap d = MakeGrayscale3(bm);
                     pictureBox1.Image = d;
                     this.Text = topText + " - Generating DiceMap...";
@@ -130,8 +169,9 @@ namespace DiceConverter
                     this.Text = topText;
                     MessageBox.Show("Complete! Dice map written to " + filePath + "\\" + fileNameNoExt + ".txt" + Environment.NewLine + Environment.NewLine + "Dice Required: " + d.Width * d.Height, "Dice Map Complete!");
                 }
-                catch (ArgumentException)
+                catch (ArgumentException err)
                 {
+                    this.Text = topText;
                     MessageBox.Show("Cannot generate a dice preview for this image because it is too big!" + Environment.NewLine + Environment.NewLine + "Try scaling it down!", "Resize Image for Dice Preview! (Make it smaller!)");
                 }
                 catch (Exception err)
@@ -140,6 +180,16 @@ namespace DiceConverter
                     MessageBox.Show(err.ToString());
                 }
             });
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            dice[1] = Properties.Resources.dice1;
+            dice[2] = Properties.Resources.dice2;
+            dice[3] = Properties.Resources.dice3;
+            dice[4] = Properties.Resources.dice4;
+            dice[5] = Properties.Resources.dice5;
+            dice[6] = Properties.Resources.dice6;
         }
     }
 }
